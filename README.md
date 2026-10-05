@@ -6,7 +6,7 @@ The filter uses the values verified in the live test: difference acceleration **
 
 ## Compatibility and operation
 
-QPEF is separate from the independent gaze module. It does not replace its model, overlay, scripts, or properties. Magisk starts `service.sh`, which waits for `trackingservice` and attaches `frida-inject` with `src/filter.js`. The script loads the native filter library and edits paired eye directions in the running process. If trackingservice restarts, QPEF attaches again.
+QPEF is separate from the independent gaze module. It does not replace its model, overlay, scripts, or properties. Magisk starts `service.sh`, which waits for `trackingservice` and attaches `frida-inject` with `src/filter.js`. The service stages its native library at `/data/local/tmp/qpef-filter.so` so the target process can load it; the script then edits paired eye directions in the running process. If trackingservice restarts, QPEF attaches again.
 
 The injection point is specific to `/odm/lib64/libtrackingengines.so` SHA-256 `0fb6f54a3e190bec791d757ea18d32a8ecc1af4a861992d04b1703c93293cd03`. On any other engine build, QPEF refuses to attach and writes the reason to `/data/adb/modules/qpef/qpef.log`. This prevents an unverified offset from being used after a headset update.
 

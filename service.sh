@@ -21,6 +21,11 @@ if [ "$ACTUAL_SHA256" != "$EXPECTED_SHA256" ]; then
 fi
 
 log 'QPEF service started'
+if ! cp "$MODDIR/lib/libqpef_filter.so" /data/local/tmp/qpef-filter.so; then
+  log 'Could not stage filter library'
+  exit 1
+fi
+chmod 0644 /data/local/tmp/qpef-filter.so
 while true; do
   PID=$(pidof trackingservice 2>/dev/null)
   if [ -z "$PID" ]; then

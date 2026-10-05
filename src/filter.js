@@ -1,7 +1,7 @@
 // QPEF in-process eye difference filter for the verified Quest Pro engine.
 const engine = Process.getModuleByName('libtrackingengines.so');
 if (engine.size !== 50614272) throw new Error('Unexpected tracking engine build');
-const filterModule = Module.load('/data/adb/modules/qpef/lib/libqpef_filter.so');
+const filterModule = Module.load('/data/local/tmp/qpef-filter.so');
 const filterExport = filterModule.enumerateExports()
   .find(item => item.name === 'qpro_damp_gaze');
 if (!filterExport) throw new Error('Native gaze filter export missing');
