@@ -1,8 +1,8 @@
 # Quest Pro Eye Filter (QPEF)
 
-**Tired of your avatar going cross-eyed when you blink?** QPEF smooths the sudden difference between your Quest Pro's eye directions that can make a blink look like a brief squint. Your eyes can still move independently: the filter lets them return toward parallel gaze immediately and gradually follows a sustained nonparallel gaze.
+Quest Pro Eye Filter reduces the brief inward shift of the eyes that can occur during a blink. It smooths sudden changes in the difference between left and right gaze. Movement back toward parallel gaze passes through immediately; when a nonparallel gaze is held, the filtered directions gradually catch up.
 
-QPEF runs **on the headset**, inside the Quest Pro tracking process. Once installed, it does not need a PC app or a live connection. It is a separate Magisk module and works alongside **any independent eye gaze model**: it filters eye directions without replacing or modifying the model.
+QPEF runs on the headset, inside the Quest Pro tracking process. It is a separate Magisk module that works with independent eye gaze models without modifying them. No PC app or live connection is needed.
 
 https://github.com/user-attachments/assets/cca37327-d6ee-4f89-933e-8997632fad3f
 
