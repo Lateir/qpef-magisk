@@ -1,34 +1,44 @@
 # Quest Pro Eye Filter (QPEF)
 
-QPEF is a standalone Magisk module for Quest Pro eye tracking. It smooths abrupt differences between the two gaze directions, particularly the brief inward motion during a blink. Movement back toward parallel gaze passes through immediately. A sustained nonparallel gaze catches up with increasing speed. The midpoint of the two gaze directions is preserved.
+**Tired of your avatar going cross-eyed when you blink?** QPEF smooths the sudden difference between your Quest Pro's eye directions that can make a blink look like a brief squint. Your eyes can still move independently: the filter lets them return toward parallel gaze immediately and gradually follows a sustained nonparallel gaze.
 
-The filter uses the values verified in the live test: difference acceleration **900°/s²**, initial resistance **0.8**, maximum difference speed **90°/s**, and follow time **45 ms**. These values are compiled into `src/gaze_damper.c`.
+QPEF runs **on the headset**, inside the Quest Pro tracking process. Once installed, it does not need a PC app or a live connection. It is a separate Magisk module and works alongside **any independent eye gaze model**: it filters eye directions without replacing or modifying the model.
 
-## Compatibility and operation
-
-QPEF is separate from the independent gaze module. It does not replace its model, overlay, scripts, or properties. Magisk starts `service.sh`, which waits for `trackingservice` and attaches `frida-inject` with `src/filter.js`. The service stages its native library at `/data/local/tmp/qpef-filter.so` so the target process can load it; the script then edits paired eye directions in the running process. If trackingservice restarts, QPEF attaches again.
-
-The injection point is specific to `/odm/lib64/libtrackingengines.so` SHA-256 `0fb6f54a3e190bec791d757ea18d32a8ecc1af4a861992d04b1703c93293cd03`. On any other engine build, QPEF refuses to attach and writes the reason to `/data/adb/modules/qpef/qpef.log`. This prevents an unverified offset from being used after a headset update.
-
-This module requires Magisk root and the tested Quest Pro tracking service. The bundled `frida-inject` is the official Frida 17.17.0 Android ARM64 release executable. Its source and license are available from [Frida](https://github.com/frida/frida/tree/17.17.0). QPEF's own source is under the included `LICENSE`.
+**[▶ Watch the vertical video preview](preview.webm)**
 
 ## Install
 
-Install `qpef-magisk.zip` in Magisk and reboot the headset. Keep the independent gaze module installed if you use its model. Check `/data/adb/modules/qpef/qpef.log` for `Attaching to trackingservice` and periodic processed-pair counts. To disable QPEF, disable only the QPEF module in Magisk and reboot.
+1. Download `qpef-magisk.zip` from the [latest release](https://github.com/Lateir/qpef-magisk/releases/latest).
+2. Install the ZIP in Magisk and reboot your Quest Pro.
+3. Keep your independent gaze module installed if you use one. QPEF works beside it.
 
-The module ZIP does not contain a model or modify the original eye module. The 53 MB injector binary compresses to roughly 16 MB in the ZIP.
+To turn QPEF off, disable only the QPEF module in Magisk and reboot. Its activity log is at `/data/adb/modules/qpef/qpef.log`.
 
-## Build
+## How it works
 
-An Android NDK with `aarch64-linux-android29-clang` and Python 3 are required:
+The filter dampens sudden changes in the difference between left and right gaze while preserving their shared direction. Changes back toward parallel gaze pass through immediately. If you deliberately hold a nonparallel gaze, the filtered directions catch up with increasing speed.
+
+The default values verified in a live headset test are: difference acceleration **900°/s²**, initial resistance **0.8**, maximum difference speed **90°/s**, and follow time **45 ms**. They are compiled into `src/gaze_damper.c`.
+
+Magisk starts `service.sh`, which attaches the filter to `trackingservice`. The native filter library is staged at `/data/local/tmp/qpef-filter.so` so the tracking process can load it. QPEF reconnects if the tracking service restarts. It does not change the independent gaze model, its overlay, or its settings.
+
+### Compatibility
+
+QPEF is independent of the **eye gaze model**, but its current injection point is specific to one Quest Pro tracking engine build: `/odm/lib64/libtrackingengines.so` with SHA-256 `0fb6f54a3e190bec791d757ea18d32a8ecc1af4a861992d04b1703c93293cd03`. If a headset update changes that library, QPEF will not attach until the new build is verified. The reason will appear in `qpef.log`.
+
+Magisk root is required. The module includes the official Android ARM64 `frida-inject` 17.17.0 executable; its source and licensing are available from [Frida](https://github.com/frida/frida/tree/17.17.0).
+
+## Build from source
+
+With Python 3 and an Android NDK containing `aarch64-linux-android29-clang`:
 
 ```sh
 aarch64-linux-android29-clang -O2 -fPIC -shared src/gaze_damper.c -lm -o lib/libqpef_filter.so
 python3 build_module.py
 ```
 
-The official Android ARM64 `frida-inject` 17.17.0 binary is kept in `bin/` so the module build is reproducible without fetching an executable during the GitHub Actions run. The original download is `https://github.com/frida/frida/releases/download/17.17.0/frida-inject-17.17.0-android-arm64.xz`.
+The build creates `qpef-magisk.zip`. The official Frida executable is kept in `bin/` so GitHub Actions can build the module without fetching a new executable. Its [original download](https://github.com/frida/frida/releases/download/17.17.0/frida-inject-17.17.0-android-arm64.xz) is also available. See [RELEASING.md](RELEASING.md) for the release process.
 
-## Releases
+## License
 
-See [RELEASING.md](RELEASING.md). The `updateJson` URL assumes the GitHub repository will be `Lateir/qpef-magisk`; change the repository name in `module.prop`, `update.json`, and `scripts/release.py` before publishing if needed.
+QPEF's original code is licensed under [0BSD](LICENSE). The bundled Frida executable retains its own license.
