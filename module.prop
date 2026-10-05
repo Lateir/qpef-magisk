@@ -1,0 +1,7 @@
+id=qpef
+name=Quest Pro Eye Filter - QPEF
+version=v1.0
+versionCode=1
+author=Lateir
+description=Smooths abrupt divergence between Quest Pro eye gaze directions.
+updateJson=https://raw.githubusercontent.com/Lateir/qpef-magisk/main/update.json

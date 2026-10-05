@@ -1,0 +1,71 @@
+name: Build and release QPEF Magisk module
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: qpef-release
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Validate release tag
+        if: github.event_name == 'push'
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          git merge-base --is-ancestor HEAD origin/main
+          python3 scripts/release.py validate "$RELEASE_TAG"
+      - name: Install Android NDK
+        run: |
+          set -euo pipefail
+          curl -fsSL --retry 3 https://dl.google.com/android/repository/android-ndk-r28c-linux.zip -o ndk.zip
+          unzip -q ndk.zip
+          echo "$PWD/android-ndk-r28c/toolchains/llvm/prebuilt/linux-x86_64/bin" >> "$GITHUB_PATH"
+      - name: Build module ZIP
+        run: |
+          set -euo pipefail
+          aarch64-linux-android29-clang -O2 -fPIC -shared src/gaze_damper.c -lm -o lib/libqpef_filter.so
+          python3 build_module.py
+          file bin/frida-inject lib/libqpef_filter.so
+          unzip -t qpef-magisk.zip
+      - name: Save test build
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: qpef-magisk-test
+          path: qpef-magisk.zip
+      - name: Publish GitHub Release
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          gh release create "$RELEASE_TAG" qpef-magisk.zip --title "$RELEASE_TAG" --notes-file CHANGELOG.md --verify-tag
+      - name: Update Magisk manifest
+        if: github.event_name == 'push'
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          git checkout -B main origin/main
+          python3 scripts/release.py update "$RELEASE_TAG"
+          git add update.json
+          if ! git diff --cached --quiet; then
+            git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m "Update Magisk manifest for $RELEASE_TAG"
+            git push origin main
+          fi
