@@ -4,7 +4,7 @@
 
 QPEF runs **on the headset**, inside the Quest Pro tracking process. Once installed, it does not need a PC app or a live connection. It is a separate Magisk module and works alongside **any independent eye gaze model**: it filters eye directions without replacing or modifying the model.
 
-**[▶ Watch the vertical video preview](preview.webm)**
+https://github.com/user-attachments/assets/cca37327-d6ee-4f89-933e-8997632fad3f
 
 ## Install
 
